@@ -1,0 +1,66 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Ingresar{% endblock %}
+
+{# Oculta header y footer #}
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block body_class %}login-page{% endblock %}
+{% block body_extra %}style="background: url('{% static 'img/background.jpg' %}') center/cover no-repeat fixed;"{% endblock %}
+
+{% block content %}
+<div class="min-h-screen w-full flex flex-col items-center justify-center px-4 py-10 bg-base-200/30">
+  <div class="w-full max-w-md">
+    <div class="card bg-base-100 shadow-xl border border-lime-400/80 backdrop-blur-xl relative overflow-hidden">
+      <div class="absolute -inset-0.5 rounded-xl opacity-20 pointer-events-none" style="background: radial-gradient(circle at 30% 20%, rgba(163,230,53,.35), transparent 70%);"></div>
+      <div class="card-body relative">
+        <div class="flex flex-col items-center mb-6">
+          {% comment %} Logo: coloca tu archivo en static/img/logo.png {% endcomment %}
+          {% if logo_path %}{% endif %}
+          {% with 'img/logo.png' as logo %}
+            <img src="{% static logo %}" alt="Logo" class="h-28 md:h-32 object-contain mb-6 transition-all" onerror="this.style.display='none'" />
+          {% endwith %}
+          <h5 class="font-semibold text-center flex items-center gap-2"><i class="las la-user"></i> 
+            Inicie sesión con su cuenta
+        </h5>
+        </div>
+        <form method="post" class="space-y-4" novalidate>
+          {% csrf_token %}
+          {% if form.non_field_errors %}
+            <div class="alert alert-error py-2 min-h-0 text-sm">
+              <i class="las la-exclamation-triangle"></i>
+              <span>{% for e in form.non_field_errors %}{{ e }}{% endfor %}</span>
+            </div>
+          {% endif %}
+          <div class="form-control">
+            <label for="id_username" class="label"><span class="label-text font-medium">Correo Electrónico</span></label>
+            {{ form.username }}
+            {% if form.username.errors %}
+              <label class="label"><span class="label-text-alt text-error">{% for e in form.username.errors %}{{ e }}{% endfor %}</span></label>
+            {% endif %}
+          </div>
+          <div class="form-control">
+            <label for="id_password" class="label"><span class="label-text font-medium">Contraseña</span></label>
+            {{ form.password }}
+            {% if form.password.errors %}
+              <label class="label"><span class="label-text-alt text-error">{% for e in form.password.errors %}{{ e }}{% endfor %}</span></label>
+            {% endif %}
+          </div>
+          <div class="">
+            <button type="submit" class="btn btn-neutral w-full gap-2 normal-case">
+                <i class="las la-sign-in-alt"></i> Iniciar Sesión
+            </button>
+          </div>
+        </form>
+        <div class="pt-6 text-center text-xs opacity-70">&copy;dev-7.com Derechos Reservados</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+{% endblock %}

@@ -1,0 +1,388 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Mi Perfil{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-8">
+    <!-- Header del perfil -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Editar perfil -->
+        <a href="{% url 'accounts:profile_edit' %}" class="btn btn-primary btn-md gap-2 text-white">
+            <i class="las la-edit text-lg"></i>
+            Editar Perfil
+        </a>
+        
+        <!-- Cambiar contraseña -->
+        <button class="btn btn-primary btn-md gap-2 text-white" onclick="openChangePasswordModal()">
+            <i class="las la-key text-lg"></i>
+            Cambiar Contraseña
+        </button>
+    </div>
+    <!-- Card principal del perfil -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <!-- Información del usuario -->
+            <div class="flex flex-col lg:flex-row gap-8">
+                <!-- Avatar y datos básicos -->
+                <div class="flex flex-col items-center lg:items-start space-y-4">
+                    <!-- Avatar -->
+                    <div class="avatar">
+                        <div class="w-32 h-32 rounded-full ring ring-base-300 ring-offset-base-100 ring-offset-2">
+                            {% if user.picture %}
+                                <img src="{{ user.picture.url }}" alt="Foto de perfil" class="rounded-full" />
+                            {% else %}
+                                <div class="bg-base-300 flex items-center justify-center text-4xl font-bold text-base-content">
+                                    {{ user.first_name|first|default:user.email|first|upper }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Estado de cuenta -->
+                    <div class="flex flex-col items-center lg:items-start space-y-2">
+                        <div class="text-sm">
+                            <i class="las la-check-circle"></i>
+                            Cuenta Activa
+                        </div>
+                        {% if user.is_confirmed_mail %}
+                            <div class="text-sm">
+                                <i class="las la-envelope-open"></i>
+                                Email Verificado
+                            </div>
+                        {% else %}
+                            <div class="text-sm opacity-60">
+                                <i class="las la-envelope"></i>
+                                Email Pendiente
+                            </div>
+                        {% endif %}
+                        {% if user.is_staff %}
+                            <div class="text-sm">
+                                <i class="las la-user-shield"></i>
+                                Administrador
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Información detallada -->
+                <div class="flex-1 space-y-6">
+                    <!-- Datos personales -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i class="las la-user"></i>
+                            Información De Usuario
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Nombre</span>
+                                </label>
+                                <div class="input input-bordered input-md flex items-center bg-base-200">
+                                    {{ user.first_name|default:"No especificado" }}
+                                </div>
+                            </div>
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Apellido</span>
+                                </label>
+                                <div class="input input-bordered input-md flex items-center bg-base-200">
+                                    {{ user.last_name|default:"No especificado" }}
+                                </div>
+                            </div>
+                            <div class="form-control md:col-span-2">
+                                <label class="label">
+                                    <span class="label-text font-medium">Correo Electrónico</span>
+                                </label>
+                                <div class="input input-bordered input-md flex items-center bg-base-200">
+                                    <i class="las la-envelope text-base-content/60 mr-2"></i>
+                                    {{ user.email }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información de cuenta -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i class="las la-info-circle"></i>
+                            Información de Cuenta
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Fecha de registro</span>
+                                </label>
+                                <div class="input input-bordered input-md flex items-center bg-base-200">
+                                    <i class="las la-calendar text-base-content/60 mr-2"></i>
+                                    {{ user.date_joined|date:"d/m/Y" }}
+                                </div>
+                            </div>
+                            <div class="form-control">
+                                <label class="label">
+                                    <span class="label-text font-medium">Último acceso</span>
+                                </label>
+                                <div class="input input-bordered input-md flex items-center bg-base-200">
+                                    <i class="las la-clock text-base-content/60 mr-2"></i>
+                                    {{ user.last_login|date:"d/m/Y H:i"|default:"Nunca" }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Notas (si existen) -->
+                    {% if user.notes %}
+                    <div>
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i class="las la-sticky-note"></i>
+                            Notas
+                        </h3>
+                        <div class="textarea textarea-bordered textarea-md bg-base-200 min-h-20">
+                            {{ user.notes }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Estadísticas adicionales -->
+        <!-- Estadísticas adicionales -->
+    <div class="stats shadow w-full">
+        <div class="stat">
+            <div class="stat-figure">
+                <i class="las la-calendar-check opacity-60"></i>
+            </div>
+            <div class="stat-title">Miembro desde</div>
+            <div class="stat-value text-lg">{{ user.date_joined|timesince }}</div>
+            <div class="stat-desc">{{ user.date_joined|date:"d/m/Y" }}</div>
+        </div>
+        
+        <div class="stat">
+            <div class="stat-figure">
+                <i class="las la-user-check opacity-60"></i>
+            </div>
+            <div class="stat-title">Estado de Email</div>
+            <div class="stat-value text-lg">{% if user.is_confirmed_mail %}Verificado{% else %}Pendiente{% endif %}</div>
+            <div class="stat-desc">{% if user.is_confirmed_mail %}Email confirmado{% else %}Requiere verificación{% endif %}</div>
+        </div>
+        
+        <div class="stat">
+            <div class="stat-figure">
+                <i class="las la-shield-alt opacity-60"></i>
+            </div>
+            <div class="stat-title">Tipo de Usuario</div>
+            <div class="stat-value text-lg">{% if user.is_superuser %}Super Admin{% elif user.is_staff %}Staff{% else %}Usuario{% endif %}</div>
+            <div class="stat-desc">{% if user.is_superuser %}Acceso completo{% elif user.is_staff %}Acceso administrativo{% else %}Acceso estándar{% endif %}</div>
+        </div>
+        
+        <div class="stat">
+            <div class="stat-figure">
+                <i class="las la-clock opacity-60"></i>
+            </div>
+            <div class="stat-title">Último acceso</div>
+            <div class="stat-value text-lg">{% if user.last_login %}{{ user.last_login|timesince }}{% else %}Nunca{% endif %}</div>
+            <div class="stat-desc">{% if user.last_login %}{{ user.last_login|date:"d/m/Y H:i" }}{% else %}Primera sesión{% endif %}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para cambio de contraseña -->
+<dialog id="changePasswordModal" class="modal">
+    <div class="modal-box">
+        <h3 class="font-bold text-lg mb-4 flex items-center gap-2">
+            <i class="las la-key"></i>
+            Cambiar Contraseña
+        </h3>
+        
+        <!-- Área de mensajes -->
+        <div id="passwordChangeMessages" class="hidden mb-4"></div>
+        
+        <!-- Contenedor del formulario -->
+        <div id="passwordFormContainer">
+            <div class="flex justify-center">
+                <span class="loading loading-spinner loading-md"></span>
+            </div>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script>
+    // Variables globales
+    const changePasswordModal = document.getElementById('changePasswordModal');
+    const passwordFormContainer = document.getElementById('passwordFormContainer');
+    const passwordChangeMessages = document.getElementById('passwordChangeMessages');
+    
+    // Función para abrir el modal de cambio de contraseña
+    function openChangePasswordModal() {
+        // Mostrar el modal
+        changePasswordModal.showModal();
+        
+        // Limpiar mensajes previos
+        hidePasswordMessages();
+        
+        // Mostrar loading
+        passwordFormContainer.innerHTML = `
+            <div class="flex justify-center py-8">
+                <span class="loading loading-spinner loading-md"></span>
+            </div>
+        `;
+        
+        // Cargar el formulario por AJAX
+        fetch('{% url "accounts:change_password" %}', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                passwordFormContainer.innerHTML = data.form_html;
+                setupPasswordFormSubmit();
+            } else {
+                showPasswordMessage('Error al cargar el formulario.', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showPasswordMessage('Error de conexión.', 'error');
+        });
+    }
+    
+    // Función para cerrar el modal
+    function closeChangePasswordModal() {
+        changePasswordModal.close();
+    }
+    
+    // Configurar el envío del formulario por AJAX
+    function setupPasswordFormSubmit() {
+        const form = document.getElementById('changePasswordForm');
+        if (!form) return;
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Limpiar errores previos
+            clearPasswordFormErrors();
+            hidePasswordMessages();
+            
+            // Mostrar loading en el botón
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<span class="loading loading-spinner loading-xs"></span> Cambiando...';
+            submitBtn.disabled = true;
+            
+            // Obtener datos del formulario
+            const formData = new FormData(form);
+            
+            // Enviar por AJAX
+            fetch('{% url "accounts:change_password" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showPasswordMessage(data.message, 'success');
+                    // Cerrar el modal después de 2 segundos
+                    setTimeout(() => {
+                        closeChangePasswordModal();
+                        // Opcional: recargar la página para actualizar la sesión
+                        // window.location.reload();
+                    }, 2000);
+                } else {
+                    showPasswordMessage(data.message, 'error');
+                    // Mostrar errores específicos de campos
+                    if (data.errors) {
+                        showPasswordFormErrors(data.errors);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showPasswordMessage('Error de conexión.', 'error');
+            })
+            .finally(() => {
+                // Restaurar el botón
+                submitBtn.innerHTML = originalBtnText;
+                submitBtn.disabled = false;
+            });
+        });
+    }
+    
+    // Mostrar mensajes en el modal
+    function showPasswordMessage(message, type) {
+        const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
+        const icon = type === 'success' ? 'la-check-circle' : 'la-exclamation-triangle';
+        
+        passwordChangeMessages.innerHTML = `
+            <div class="alert ${alertClass}">
+                <i class="las ${icon}"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        passwordChangeMessages.classList.remove('hidden');
+    }
+    
+    // Ocultar mensajes
+    function hidePasswordMessages() {
+        passwordChangeMessages.classList.add('hidden');
+        passwordChangeMessages.innerHTML = '';
+    }
+    
+    // Mostrar errores específicos de campos
+    function showPasswordFormErrors(errors) {
+        for (const [fieldName, errorMessages] of Object.entries(errors)) {
+            const errorContainer = document.getElementById(`${fieldName}_errors`);
+            if (errorContainer) {
+                errorContainer.querySelector('.label-text-alt').textContent = errorMessages.join(', ');
+                errorContainer.classList.remove('hidden');
+            }
+        }
+    }
+    
+    // Limpiar errores de campos
+    function clearPasswordFormErrors() {
+        const errorContainers = document.querySelectorAll('[id$="_errors"]');
+        errorContainers.forEach(container => {
+            container.classList.add('hidden');
+            const textElement = container.querySelector('.label-text-alt');
+            if (textElement) textElement.textContent = '';
+        });
+    }
+    
+    // Función para obtener el token CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    function openSettings() {
+        // TODO: Implementar modal o redirigir a página de configuración
+        alert('Función de configuración - Por implementar');
+    }
+</script>
+{% endblock %}

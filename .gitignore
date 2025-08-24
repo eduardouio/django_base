@@ -1,0 +1,129 @@
+#############################################
+# Django + Python + Vue (Vite) Monorepo     #
+# Archivo generado: buenas prácticas .gitignore
+#############################################
+
+# ============= Python / Django =============
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+.env/
+
+# Archivos de configuración sensibles
+*.env
+*.env.*
+!.env.example
+!.env.template
+
+# Django stuff
+*.log
+*.pot
+*.py,cover
+local_settings.py
+settings_local.py
+db.sqlite3
+db.sqlite3-journal
+
+# Archivos de migraciones compiladas (normalmente sí se versionan los .py)
+*.pyc
+
+# Media (subidas por usuarios) – comenta si deseas versionarlas
+media/*
+!media/.gitkeep
+
+# Archivos estáticos generados (collectstatic)
+staticfiles/
+
+# Cache de Django / otras
+*.cache
+
+# Cobertura / testing
+.coverage
+.coverage.*
+coverage-html/
+htmlcov/
+pytest.cache/
+
+# ============= Node / Vue / Vite =============
+node_modules/
+dist/
+dist-ssr/
+*.local
+.vite/
+.nuxt/
+
+# Construcciones temporales
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Coverage JS
+coverage/
+
+# ============= Build / empaquetado =============
+build/
+tmp/
+temp/
+.tmp/
+
+# ============= IDE / Editor =============
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.sample.json
+*.swp
+*.swo
+*.sublime-project
+*.sublime-workspace
+
+# ============= Sistema Operativo =============
+.DS_Store
+Thumbs.db
+
+# ============= Otros =============
+*.bak
+*.orig
+*.rej
+*.patch
+
+# Lock / dependencia (se suelen versionar, descomenta si no quieres)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+# poetry.lock
+# requirements.txt  # (este sí se versiona normalmente)
+
+# SQLite u otros DB locales — ya incluido db.sqlite3 arriba
+*.sqlite3
+
+# Docker (si se usa)
+docker-data/
+*.pid
+
+# Celery / RQ
+celerybeat-schedule*
+celerybeat.pid
+
+# Traducciones compiladas
+*.mo
+
+# ============= Mantener carpetas vacías =============
+!static/.gitkeep
+!media/.gitkeep
+
+# ============= Migraciones Django (ignoradas) =============
+# Ignora todas las migraciones generadas, pero conserva los __init__.py para que Python trate el paquete correctamente.
+**/migrations/**
+
