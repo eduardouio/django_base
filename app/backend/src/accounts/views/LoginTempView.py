@@ -131,11 +131,7 @@ class LoginTempView(LoginView):
                   False en caso contrario
         """
         # Obtener licencias activas y no expiradas del usuario
-        active_licenses = License.objects.filter(
-            user=user,
-            is_active=True,
-            is_deleted=False
-        ).exclude(expires_on__lt=timezone.now())
+        active_licenses = License.objects.filter(user=user)
 
         if not active_licenses.exists():
             log_warning(
