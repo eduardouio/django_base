@@ -36,7 +36,19 @@ class CustomUserModel(AbstractUser):
         'notas',
         blank=True
     )
-
+    profile_type = models.CharField(
+        'tipo de perfil',
+        max_length=50,
+        choices=(
+            ('MANAGER', 'Administrador'),
+            ('ENTERPRISE', 'Empresa'),
+            ('CONSULTOR', 'Consultor'),
+            ('TECHNICAL', 'Técnico'),
+            ('REPORTS', 'Reportes'),
+        ),
+        default='REPORTS',
+    )
+    
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     objects = CustomUserManager()
