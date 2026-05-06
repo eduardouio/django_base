@@ -116,6 +116,13 @@ Requisitos previos:
 - (Opcional) PostgreSQL si migrarás de SQLite.
 
 Instalación rápida:
+
+primero corre el scrit  bash
+
+bash app/manage_migrations.sh
+
+crea la base en blanco
+
 ```bash
 cd app/backend
 python -m venv .venv
@@ -123,10 +130,10 @@ source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install --upgrade pip
 pip install -r requeriments.txt
 
-python src/manage.py makemigrations accounts  # si aún no existen
-python src/manage.py migrate
-python src/manage.py createsuperuser --email admin@example.com
-python src/manage.py runserver
+python manage.py makemigrations accounts  # si aún no existen
+python manage.py migrate
+python manage.py sowseed
+python manage.py runserver
 ```
 
 Admin (agrega las URLs de Grappelli si las defines en `config/urls.py`).
