@@ -151,7 +151,72 @@ Flujo recomendado en fase inicial:
 Precaución: Nunca borres migraciones en entornos ya desplegados.
 
 ## 10. Variables de Entorno / Seguridad
-`SECRET_KEY` y `DEBUG` están hardcodeados para desarrollo.
+
+### Crear `secrets.py` (obligatorio)
+
+El archivo `app/src/config/secrets.py` contiene credenciales sensibles y **nunca se versiona** (está en `.gitignore`). Debes crearlo manualmente antes de levantar el proyecto.
+
+Ruta: `app/src/config/secrets.py`
+
+```python
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# ── Email ──────────────────────────────────────────────────────────────────
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.tudominio.com'
+EMAIL_PORT = 465
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'notificaciones@tudominio.com'
+MAIL_PASS = 'tu_password_de_correo'
+
+# ── Bases de datos ─────────────────────────────────────────────────────────
+DATABASES = {
+    'TEST': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'test_db',
+        'USER': 'postgres',
+        'PASSWORD': 'tu_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    'PRODUCTION': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'prod_db',
+        'USER': 'postgres',
+        'PASSWORD': 'tu_password_prod',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+    'DEVELOPMENT': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'dev_db',
+        'USER': 'tu_usuario',
+        'PASSWORD': 'tu_password_dev',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    },
+}
+
+# Selecciona cuál DB es la activa (usa la clave de DATABASES de arriba)
+DEFAULT_DB = {
+    'default': {
+        **DATABASES['DEVELOPMENT'],
+        'CONN_MAX_AGE': 60,
+    }
+}
+
+DEBUG = True  # False en producción
+```
+
+> Para crear las bases de datos en PostgreSQL:
+> ```sql
+> CREATE DATABASE dev_db OWNER tu_usuario;
+> GRANT ALL PRIVILEGES ON DATABASE dev_db TO tu_usuario;
+> ```
+
+`SECRET_KEY` y `DEBUG` están hardcodeados en `settings.py` para desarrollo.
 Sugerencia `.env` (no versionarlo):
 ```env
 DJANGO_SECRET_KEY=changeme

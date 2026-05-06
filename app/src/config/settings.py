@@ -12,6 +12,17 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 
+from config.secrets import (
+    DEBUG as SECRETS_DEBUG,
+    DEFAULT_DB,
+    EMAIL_BACKEND as SECRETS_EMAIL_BACKEND,
+    EMAIL_HOST as SECRETS_EMAIL_HOST,
+    EMAIL_HOST_USER as SECRETS_EMAIL_HOST_USER,
+    EMAIL_PORT as SECRETS_EMAIL_PORT,
+    EMAIL_USE_TLS as SECRETS_EMAIL_USE_TLS,
+    MAIL_PASS as SECRETS_MAIL_PASS,
+)
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,7 +34,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-dmiffk3lw9ht7&cvk#ix)y4b88xvy3c%0ci%@npnn&isex2*b$'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = SECRETS_DEBUG
 
 ALLOWED_HOSTS = ['*',]
 
@@ -82,13 +93,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
+DATABASES = DEFAULT_DB
 
 
 # Password validation
@@ -108,6 +113,14 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# Email
+EMAIL_BACKEND = SECRETS_EMAIL_BACKEND
+EMAIL_HOST = SECRETS_EMAIL_HOST
+EMAIL_PORT = SECRETS_EMAIL_PORT
+EMAIL_USE_TLS = SECRETS_EMAIL_USE_TLS
+EMAIL_HOST_USER = SECRETS_EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = SECRETS_MAIL_PASS
 
 
 # Internationalization

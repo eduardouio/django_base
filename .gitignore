@@ -127,3 +127,4 @@ celerybeat.pid
 # Ignora todas las migraciones generadas, pero conserva los __init__.py para que Python trate el paquete correctamente.
 **/migrations/**
 
+app/src/config/secrets.py
