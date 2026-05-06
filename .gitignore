@@ -128,3 +128,4 @@ celerybeat.pid
 **/migrations/**
 
 app/src/config/secrets.py
+promt.txt
