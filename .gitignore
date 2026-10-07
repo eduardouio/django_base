@@ -129,3 +129,4 @@ celerybeat.pid
 
 app/src/config/secrets.py
 promt.txt
+promt.md
