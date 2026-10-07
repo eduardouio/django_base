@@ -1,0 +1,95 @@
+{# Matriz App → Modelo → acción. Recibe: catalog, actions, selected (ids), inherited (ids) #}
+<div class="space-y-3" id="permissionMatrix">
+	{% for app in catalog %}
+	<div class="collapse collapse-arrow bg-base-100 border border-base-300" data-app>
+		<input type="checkbox" {% if forloop.first %}checked{% endif %} />
+		<div class="collapse-title font-semibold flex items-center gap-2">
+			<i class="las la-cube text-xl text-primary"></i> {{ app.name }}
+			<span class="badge badge-ghost badge-sm">{{ app.label }}</span>
+		</div>
+		<div class="collapse-content">
+			<div class="flex justify-end gap-2 mb-2">
+				<button type="button" class="btn btn-xs btn-ghost" data-toggle-app="1"><i class="las la-check-double"></i> Marcar todo</button>
+				<button type="button" class="btn btn-xs btn-ghost" data-toggle-app="0"><i class="las la-times"></i> Quitar todo</button>
+			</div>
+			<div class="overflow-x-auto">
+				<table class="table table-sm table-zebra">
+					<thead>
+						<tr>
+							<th>Modelo</th>
+							{% for code, label in actions %}
+							<th class="text-center">
+								<button type="button" class="link link-hover" data-toggle-col="{{ forloop.counter0 }}" title="Marcar/quitar columna">{{ label }}</button>
+							</th>
+							{% endfor %}
+							<th>Otros permisos</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for model in app.models %}
+						<tr data-row>
+							<td>
+								<button type="button" class="link link-hover font-medium text-left" data-toggle-row title="Marcar/quitar fila">{{ model.name }}</button>
+							</td>
+							{% for perm in model.cells %}
+							<td class="text-center" data-col="{{ forloop.counter0 }}">
+								{% if perm %}
+									{% if perm.id in inherited %}
+										<input type="checkbox" class="checkbox checkbox-sm checkbox-secondary" checked disabled title="Heredado de un rol" />
+									{% else %}
+										<input type="checkbox" class="checkbox checkbox-sm checkbox-primary" name="permissions" value="{{ perm.id }}" {% if perm.id in selected %}checked{% endif %} title="{{ perm.name }}" />
+									{% endif %}
+								{% else %}
+									<span class="opacity-30">—</span>
+								{% endif %}
+							</td>
+							{% endfor %}
+							<td>
+								<div class="flex flex-col gap-1">
+								{% for perm in model.extra %}
+									<label class="label cursor-pointer justify-start gap-2 py-0">
+										{% if perm.id in inherited %}
+											<input type="checkbox" class="checkbox checkbox-xs checkbox-secondary" checked disabled />
+										{% else %}
+											<input type="checkbox" class="checkbox checkbox-xs checkbox-primary" name="permissions" value="{{ perm.id }}" {% if perm.id in selected %}checked{% endif %} />
+										{% endif %}
+										<span class="label-text text-xs">{{ perm.name }}</span>
+									</label>
+								{% empty %}
+									<span class="opacity-30">—</span>
+								{% endfor %}
+								</div>
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	{% endfor %}
+</div>
+<script>
+(function () {
+	const matrix = document.getElementById('permissionMatrix');
+	if (!matrix) return;
+	const toggle = (boxes, value) => {
+		const list = [...boxes].filter(b => !b.disabled);
+		const state = value === undefined ? !list.every(b => b.checked) : value;
+		list.forEach(b => { b.checked = state; });
+	};
+	matrix.addEventListener('click', (e) => {
+		const appBtn = e.target.closest('[data-toggle-app]');
+		const colBtn = e.target.closest('[data-toggle-col]');
+		const rowBtn = e.target.closest('[data-toggle-row]');
+		if (appBtn) {
+			toggle(appBtn.closest('[data-app]').querySelectorAll('input[name="permissions"]'), appBtn.dataset.toggleApp === '1');
+		} else if (colBtn) {
+			const col = colBtn.dataset.toggleCol;
+			toggle(colBtn.closest('table').querySelectorAll(`td[data-col="${col}"] input[name="permissions"]`));
+		} else if (rowBtn) {
+			toggle(rowBtn.closest('[data-row]').querySelectorAll('input[name="permissions"]'));
+		}
+	});
+})();
+</script>

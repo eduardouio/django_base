@@ -1,0 +1,139 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{% include 'pages/system/_nav.html' %}
+
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+	<div class="stat bg-base-200 rounded-box">
+		<div class="stat-figure text-success"><i class="las la-user-check text-4xl"></i></div>
+		<div class="stat-title">En línea ahora</div>
+		<div class="stat-value text-success" id="statOnline">{{ online_count }}</div>
+		<div class="stat-desc">Actividad en los últimos minutos</div>
+	</div>
+	<div class="stat bg-base-200 rounded-box">
+		<div class="stat-figure text-info"><i class="las la-laptop text-4xl"></i></div>
+		<div class="stat-title">Sesiones abiertas</div>
+		<div class="stat-value text-info" id="statOpen">{{ open_count }}</div>
+		<div class="stat-desc">Incluye usuarios inactivos</div>
+	</div>
+	<div class="stat bg-base-200 rounded-box">
+		<div class="stat-figure"><i class="las la-sign-in-alt text-4xl"></i></div>
+		<div class="stat-title">Inicios de sesión hoy</div>
+		<div class="stat-value" id="statToday">{{ logins_today }}</div>
+		<div class="stat-desc"><a href="{% url 'system:session_history' %}" class="link">Ver historial</a></div>
+	</div>
+</div>
+
+<div class="flex items-center justify-between mb-2">
+	<h2 class="font-semibold">Sesiones abiertas</h2>
+	<span class="text-xs opacity-60"><span class="loading loading-ring loading-xs align-middle"></span> Se actualiza cada 30 s · <span id="lastRefresh">ahora</span></span>
+</div>
+<div class="overflow-x-auto bg-base-100 border border-base-300 rounded-box">
+	<table class="table table-sm">
+		<thead><tr><th>Estado</th><th>Usuario</th><th>Perfil</th><th>IP</th><th>Dispositivo</th><th>Inicio</th><th>Última actividad</th><th></th></tr></thead>
+		<tbody id="sessionsBody">
+		{% for s in sessions %}
+			<tr class="hover">
+				<td>{% if s.is_online %}<span class="badge badge-success badge-sm gap-1"><span class="w-2 h-2 rounded-full bg-success-content"></span> En línea</span>{% else %}<span class="badge badge-ghost badge-sm">Inactivo</span>{% endif %}</td>
+				<td><div class="font-medium">{{ s.user.email }}</div><div class="text-xs opacity-60">{{ s.user.get_full_name }}</div></td>
+				<td class="text-xs">{{ s.user.get_profile_type_display }}</td>
+				<td class="text-xs font-mono">{{ s.ip|default:'—' }}</td>
+				<td class="text-xs">{{ s.device }}</td>
+				<td class="text-xs whitespace-nowrap">{{ s.login_at|date:'d/m/Y H:i' }}</td>
+				<td class="text-xs whitespace-nowrap">hace {{ s.last_activity|timesince }}</td>
+				<td class="text-right">
+					{% if s.session_key == request.session.session_key %}
+						<span class="badge badge-outline badge-sm">Tu sesión</span>
+					{% elif perms.system.close_usersession %}
+						<button type="button" class="btn btn-xs btn-error btn-outline" onclick="confirmClose({{ s.pk }}, '{{ s.user.email|escapejs }}')"><i class="las la-power-off"></i> Cerrar</button>
+					{% endif %}
+				</td>
+			</tr>
+		{% empty %}
+			<tr><td colspan="8" class="text-center py-10 opacity-70">No hay sesiones abiertas.</td></tr>
+		{% endfor %}
+		</tbody>
+	</table>
+</div>
+
+{% if perms.system.close_usersession %}
+<dialog id="closeSessionModal" class="modal">
+	<div class="modal-box">
+		<h3 class="font-bold text-lg"><i class="las la-power-off text-error"></i> Cerrar sesión</h3>
+		<p class="py-4">¿Seguro que deseas cerrar la sesión de <strong id="closeSessionUser"></strong>? Tendrá que volver a iniciar sesión.</p>
+		<form method="post" id="closeSessionForm" class="modal-action">
+			{% csrf_token %}
+			<button type="button" class="btn btn-ghost" onclick="closeSessionModal.close()">Cancelar</button>
+			<button type="submit" class="btn btn-error">Cerrar sesión</button>
+		</form>
+	</div>
+	<form method="dialog" class="modal-backdrop"><button>cerrar</button></form>
+</dialog>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+	const closeUrlTemplate = "{% url 'system:session_close' 0 %}";
+	const canClose = {% if perms.system.close_usersession %}true{% else %}false{% endif %};
+
+	function confirmClose(id, email) {
+		document.getElementById('closeSessionUser').textContent = email;
+		document.getElementById('closeSessionForm').action = closeUrlTemplate.replace('/0/', `/${id}/`);
+		document.getElementById('closeSessionModal').showModal();
+	}
+
+	function escapeHtml(text) {
+		const div = document.createElement('div');
+		div.textContent = text;
+		return div.innerHTML;
+	}
+
+	function renderRow(s) {
+		const status = s.is_online
+			? '<span class="badge badge-success badge-sm gap-1"><span class="w-2 h-2 rounded-full bg-success-content"></span> En línea</span>'
+			: '<span class="badge badge-ghost badge-sm">Inactivo</span>';
+		let action = '';
+		if (s.is_current) {
+			action = '<span class="badge badge-outline badge-sm">Tu sesión</span>';
+		} else if (canClose) {
+			action = `<button type="button" class="btn btn-xs btn-error btn-outline" data-close="${s.id}" data-email="${escapeHtml(s.email)}"><i class="las la-power-off"></i> Cerrar</button>`;
+		}
+		return `<tr class="hover">
+			<td>${status}</td>
+			<td><div class="font-medium">${escapeHtml(s.email)}</div><div class="text-xs opacity-60">${escapeHtml(s.name)}</div></td>
+			<td class="text-xs">${escapeHtml(s.profile)}</td>
+			<td class="text-xs font-mono">${escapeHtml(s.ip || '—')}</td>
+			<td class="text-xs">${escapeHtml(s.device)}</td>
+			<td class="text-xs whitespace-nowrap">${escapeHtml(s.login_at)}</td>
+			<td class="text-xs whitespace-nowrap">hace ${escapeHtml(s.last_activity)}</td>
+			<td class="text-right">${action}</td>
+		</tr>`;
+	}
+
+	document.getElementById('sessionsBody').addEventListener('click', (e) => {
+		const btn = e.target.closest('[data-close]');
+		if (btn) confirmClose(btn.dataset.close, btn.dataset.email);
+	});
+
+	async function refreshSessions() {
+		try {
+			const response = await fetch("{% url 'system:connected_users_data' %}", {headers: {'Accept': 'application/json'}});
+			if (!response.ok) return;
+			const data = await response.json();
+			document.getElementById('statOnline').textContent = data.online_count;
+			document.getElementById('statOpen').textContent = data.open_count;
+			document.getElementById('statToday').textContent = data.logins_today;
+			document.getElementById('sessionsBody').innerHTML = data.sessions.length
+				? data.sessions.map(renderRow).join('')
+				: '<tr><td colspan="8" class="text-center py-10 opacity-70">No hay sesiones abiertas.</td></tr>';
+			document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString();
+		} catch (err) {
+			console.error('No se pudo actualizar la lista de sesiones', err);
+		}
+	}
+	setInterval(refreshSessions, 30000);
+</script>
+{% endblock %}

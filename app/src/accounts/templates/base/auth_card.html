@@ -1,0 +1,27 @@
+{% extends 'base/base.html' %}
+{% load static %}
+{# Tarjeta centrada sin header/footer para login y recuperación de contraseña #}
+
+{% block header %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block body_class %}login-page{% endblock %}
+{% block body_extra %}style="background: url('{% static 'img/background.jpg' %}') center/cover no-repeat fixed;"{% endblock %}
+
+{% block content %}
+<div class="min-h-screen w-full flex flex-col items-center justify-center px-4 py-10 bg-base-200/30">
+  <div class="w-full max-w-md">
+    <div class="card bg-base-100 shadow-xl border border-lime-400/80 backdrop-blur-xl relative overflow-hidden">
+      <div class="absolute -inset-0.5 rounded-xl opacity-20 pointer-events-none" style="background: radial-gradient(circle at 30% 20%, rgba(163,230,53,.35), transparent 70%);"></div>
+      <div class="card-body relative">
+        <div class="flex flex-col items-center mb-4">
+          <img src="{% static 'img/logo.png' %}" alt="Logo" class="h-20 object-contain mb-4" onerror="this.style.display='none'" />
+          <h5 class="font-semibold text-center flex items-center gap-2">{% block card_title %}{% endblock %}</h5>
+        </div>
+        {% block card_body %}{% endblock %}
+        <div class="pt-6 text-center text-xs opacity-70">&copy;dev-7.com Derechos Reservados</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

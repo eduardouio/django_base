@@ -1,0 +1,58 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{% include 'pages/system/_nav.html' %}
+
+<div class="flex flex-col md:flex-row gap-4 mb-6 md:items-end">
+	<form method="get" class="flex flex-1 gap-2 items-end">
+		<label class="form-control flex-1">
+			<span class="label-text text-xs mb-1">Buscar por destinatario o asunto</span>
+			<input type="search" name="q" value="{{ filters.q|default:'' }}" class="input input-bordered input-sm w-full" placeholder="Buscar..." />
+		</label>
+		<label class="form-control">
+			<span class="label-text text-xs mb-1">Estado</span>
+			<select name="status" class="select select-bordered select-sm">
+				<option value="">Todos</option>
+				{% for code, label in statuses %}<option value="{{ code }}" {% if filters.status == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+			</select>
+		</label>
+		<button class="btn btn-sm btn-primary"><i class="las la-filter"></i></button>
+	</form>
+	{% if perms.system.send_test_email %}
+	<form method="post" action="{% url 'system:email_test' %}">
+		{% csrf_token %}
+		<button class="btn btn-sm btn-outline gap-2" title="Envía un correo a {{ user.email }}"><i class="las la-paper-plane"></i> Enviar correo de prueba</button>
+	</form>
+	{% endif %}
+</div>
+
+<div class="overflow-x-auto bg-base-100 border border-base-300 rounded-box">
+	<table class="table table-sm">
+		<thead><tr><th>Fecha</th><th>Para</th><th>Asunto</th><th>Plantilla</th><th>Estado</th><th>Enviado por</th></tr></thead>
+		<tbody>
+		{% for email in object_list %}
+			<tr class="hover">
+				<td class="text-xs whitespace-nowrap">{{ email.created_at|date:'d/m/Y H:i' }}</td>
+				<td class="text-xs max-w-[14rem] truncate" title="{{ email.to }}">{{ email.to }}{% if email.cc %}<div class="opacity-60">CC: {{ email.cc }}</div>{% endif %}</td>
+				<td class="max-w-xs truncate" title="{{ email.subject }}">{{ email.subject }}</td>
+				<td class="text-xs font-mono">{{ email.template }}</td>
+				<td>
+					{% if email.status == 'SENT' %}<span class="badge badge-success badge-sm">Enviado</span>
+					{% elif email.status == 'FAILED' %}<span class="badge badge-error badge-sm tooltip tooltip-left" data-tip="{{ email.error }}">Fallido</span>
+					{% else %}<span class="badge badge-ghost badge-sm">Pendiente</span>{% endif %}
+				</td>
+				<td class="text-xs">{{ email.triggered_by.email|default:'Sistema' }}</td>
+			</tr>
+			{% if email.status == 'FAILED' and email.error %}
+			<tr><td></td><td colspan="5" class="text-xs text-error font-mono pt-0">{{ email.error }}</td></tr>
+			{% endif %}
+		{% empty %}
+			<tr><td colspan="6" class="text-center py-10 opacity-70"><i class="las la-inbox text-4xl"></i><p>No hay correos registrados.</p></td></tr>
+		{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% include 'pages/system/_pagination.html' %}
+{% endblock %}

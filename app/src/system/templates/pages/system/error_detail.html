@@ -1,0 +1,83 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{% include 'pages/system/_nav.html' %}
+
+<div class="flex flex-col lg:flex-row gap-6">
+	<div class="flex-1 min-w-0 space-y-6">
+		<div class="card bg-base-100 border border-base-300">
+			<div class="card-body">
+				<div class="flex flex-wrap items-center gap-2">
+					<span class="badge {% if error.level == 'CRITICAL' %}badge-error{% else %}badge-warning{% endif %}">{{ error.level }}</span>
+					{% if error.is_resolved %}<span class="badge badge-success">Resuelto</span>{% else %}<span class="badge badge-error badge-outline">Pendiente</span>{% endif %}
+					<span class="badge badge-ghost">{{ error.occurrences }} ocurrencia{{ error.occurrences|pluralize }}</span>
+				</div>
+				<h2 class="card-title text-xl break-all">{{ error.exception_type|default:error.logger_name }}</h2>
+				<p class="whitespace-pre-wrap break-words">{{ error.message }}</p>
+				<p class="text-xs font-mono opacity-70 break-all"><i class="las la-map-marker"></i> {{ error.location }}</p>
+			</div>
+		</div>
+
+		{% if error.traceback %}
+		<div class="card bg-base-100 border border-base-300">
+			<div class="card-body">
+				<div class="flex items-center justify-between">
+					<h3 class="font-semibold"><i class="las la-code"></i> Traceback</h3>
+					<button type="button" class="btn btn-xs btn-ghost" onclick="navigator.clipboard.writeText(document.getElementById('traceback').innerText)"><i class="las la-copy"></i> Copiar</button>
+				</div>
+				<pre id="traceback" class="bg-neutral text-neutral-content p-4 rounded-box text-xs overflow-x-auto max-h-[32rem]">{{ error.traceback }}</pre>
+			</div>
+		</div>
+		{% endif %}
+
+		{% if error.request_data.GET or error.request_data.POST %}
+		<div class="card bg-base-100 border border-base-300">
+			<div class="card-body">
+				<h3 class="font-semibold"><i class="las la-list"></i> Datos del request <span class="text-xs opacity-60 font-normal">(los valores sensibles se ocultan)</span></h3>
+				{% for method, data in error.request_data.items %}{% if data %}
+				<div class="overflow-x-auto">
+					<table class="table table-xs">
+						<thead><tr><th colspan="2">{{ method }}</th></tr></thead>
+						<tbody>{% for key, value in data.items %}<tr><td class="font-mono w-48">{{ key }}</td><td class="font-mono break-all">{{ value }}</td></tr>{% endfor %}</tbody>
+					</table>
+				</div>
+				{% endif %}{% endfor %}
+			</div>
+		</div>
+		{% endif %}
+	</div>
+
+	<aside class="lg:w-80 space-y-6">
+		<div class="card bg-base-200">
+			<div class="card-body text-sm space-y-1">
+				<h3 class="font-semibold mb-2">Contexto</h3>
+				<div><span class="opacity-60">URL:</span> <span class="font-mono break-all">{{ error.method }} {{ error.url|default:'—' }}</span></div>
+				<div><span class="opacity-60">Código HTTP:</span> {{ error.status_code|default:'—' }}</div>
+				<div><span class="opacity-60">Usuario:</span> {{ error.user.email|default:'Anónimo' }}</div>
+				<div><span class="opacity-60">IP:</span> {{ error.ip|default:'—' }}</div>
+				<div><span class="opacity-60">Navegador:</span> <span class="text-xs break-all">{{ error.user_agent|default:'—' }}</span></div>
+				<div><span class="opacity-60">Request ID:</span> <span class="font-mono">{{ error.request_id }}</span></div>
+				<div><span class="opacity-60">Logger:</span> {{ error.logger_name }}</div>
+				<div class="divider my-1"></div>
+				<div><span class="opacity-60">Primera vez:</span> {{ error.first_seen|date:'d/m/Y H:i:s' }}</div>
+				<div><span class="opacity-60">Última vez:</span> {{ error.last_seen|date:'d/m/Y H:i:s' }}</div>
+				{% if error.is_resolved %}<div><span class="opacity-60">Resuelto por:</span> {{ error.resolved_by.email|default:'—' }} el {{ error.resolved_at|date:'d/m/Y H:i' }}</div>{% endif %}
+			</div>
+		</div>
+		{% if perms.system.change_errorlog %}
+		<form method="post" action="{% url 'system:error_resolve' error.pk %}">
+			{% csrf_token %}
+			<input type="hidden" name="next" value="{{ request.get_full_path }}" />
+			{% if error.is_resolved %}
+			<button class="btn btn-outline btn-warning w-full gap-2"><i class="las la-undo"></i> Reabrir error</button>
+			{% else %}
+			<button class="btn btn-success w-full gap-2"><i class="las la-check"></i> Marcar como resuelto</button>
+			{% endif %}
+		</form>
+		{% endif %}
+		<a href="{% url 'system:error_list' %}" class="btn btn-ghost w-full gap-2"><i class="las la-arrow-left"></i> Volver al listado</a>
+	</aside>
+</div>
+{% endblock %}

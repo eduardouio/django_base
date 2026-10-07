@@ -47,6 +47,9 @@
             {% if form.password.errors %}
               <label class="label"><span class="label-text-alt text-error">{% for e in form.password.errors %}{{ e }}{% endfor %}</span></label>
             {% endif %}
+            <label class="label justify-end">
+              <a href="{% url 'accounts:password_reset' %}" class="label-text-alt link link-hover">¿Olvidaste tu contraseña?</a>
+            </label>
           </div>
           <div class="">
             <button type="submit" class="btn btn-neutral w-full gap-2 normal-case">

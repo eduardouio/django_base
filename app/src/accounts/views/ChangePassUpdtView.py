@@ -7,7 +7,10 @@ from django.views.decorators.csrf import csrf_protect
 from django.utils.decorators import method_decorator
 from django.middleware.csrf import get_token
 from accounts.forms.ChangePasswordForm import ChangePasswordForm
-from common.LoggerApp import log_info, log_warning, log_error
+from accounts.views.PasswordResetConfirmUpdtView import (
+    send_password_changed_email
+)
+from common.LoggerApp import log_info, log_warning, log_exception
 
 
 @method_decorator(csrf_protect, name='dispatch')
@@ -43,6 +46,7 @@ class ChangePassUpdtView(LoginRequiredMixin, View):
                     message=f"Cambio de contraseña exitoso para: {user.email}",
                     request=request
                 )
+                send_password_changed_email(request, user)
 
                 return JsonResponse({
                     'success': True,
@@ -72,7 +76,7 @@ class ChangePassUpdtView(LoginRequiredMixin, View):
                 })
 
         except Exception as e:
-            log_error(
+            log_exception(
                 user=request.user,
                 url=request.path,
                 file_name="ChangePassUpdtView",

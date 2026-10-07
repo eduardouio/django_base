@@ -1,12 +1,20 @@
 """
 Sistema de Logging Personalizado para la Aplicación Django.
 Registra información detallada de las actividades del usuario.
+
+Los handlers (archivos rotativos, base de datos, consola) se configuran en
+settings.LOGGING; este módulo solo da formato a los mensajes y mantiene la
+API de siempre: log_info, log_warning, log_error, log_debug, log_critical.
+
+Para registrar una excepción con su traceback completo use log_exception
+dentro de un bloque except.
 """
 
+import functools
 import logging
-import os
-from django.conf import settings
-from pathlib import Path
+
+
+LOGGER_NAME = 'app_logger'
 
 
 class AppLogger:
@@ -16,41 +24,7 @@ class AppLogger:
     """
 
     def __init__(self):
-        self.log_file_path = os.path.join(
-            settings.BASE_DIR,
-            'logs',
-            'app_log.log'
-        )
-        self._setup_logger()
-
-    def _setup_logger(self):
-        """
-        Configura el logger con el formato personalizado.
-        """
-        # Crear directorio de logs si no existe
-        log_dir = os.path.dirname(self.log_file_path)
-        Path(log_dir).mkdir(parents=True, exist_ok=True)
-
-        # Configurar el logger
-        self.logger = logging.getLogger('app_logger')
-        self.logger.setLevel(logging.INFO)
-
-        # Evitar duplicar handlers si ya existen
-        if not self.logger.handlers:
-            # Handler para archivo
-            file_handler = logging.FileHandler(
-                self.log_file_path, encoding='utf-8'
-            )
-            file_handler.setLevel(logging.INFO)
-
-            # Formato personalizado
-            formatter = logging.Formatter(
-                '%(asctime)s | %(levelname)s | %(message)s',
-                datefmt='%Y-%m-%d %H:%M:%S'
-            )
-            file_handler.setFormatter(formatter)
-
-            self.logger.addHandler(file_handler)
+        self.logger = logging.getLogger(LOGGER_NAME)
 
     def _format_log_message(self, user, url, file_name, message, request=None):
         """
@@ -68,7 +42,7 @@ class AppLogger:
         """
         # Obtener información del usuario
         if hasattr(user, 'email'):
-            user_info = user.email
+            user_info = user.email or "Sistema/Anónimo"
         elif isinstance(user, str):
             user_info = user
         elif user is None:
@@ -92,6 +66,23 @@ class AppLogger:
 
         return " | ".join(log_parts)
 
+    def _log(self, level, user, url, file_name, message, request=None,
+             exc_info=False, stacklevel=3):
+        """
+        stacklevel=3 hace que el registro apunte a quien llamó a info()/
+        log_info() y no a este módulo (se usa para agrupar errores).
+        """
+        if not self.logger.isEnabledFor(level):
+            return
+        formatted_message = self._format_log_message(
+            user, url, file_name, message, request
+        )
+        extra = {'request': request} if request is not None else None
+        self.logger.log(
+            level, formatted_message, exc_info=exc_info, extra=extra,
+            stacklevel=stacklevel
+        )
+
     def info(self, user, url, file_name, message, request=None):
         """
         Registra un mensaje de información.
@@ -103,46 +94,39 @@ class AppLogger:
             message: Mensaje descriptivo
             request: Objeto request de Django (opcional)
         """
-        formatted_message = self._format_log_message(
-            user, url, file_name, message, request
-        )
-        self.logger.info(formatted_message)
+        self._log(logging.INFO, user, url, file_name, message, request)
 
     def warning(self, user, url, file_name, message, request=None):
         """
         Registra un mensaje de advertencia.
         """
-        formatted_message = self._format_log_message(
-            user, url, file_name, message, request
-        )
-        self.logger.warning(formatted_message)
+        self._log(logging.WARNING, user, url, file_name, message, request)
 
     def error(self, user, url, file_name, message, request=None):
         """
         Registra un mensaje de error.
         """
-        formatted_message = self._format_log_message(
-            user, url, file_name, message, request
-        )
-        self.logger.error(formatted_message)
+        self._log(logging.ERROR, user, url, file_name, message, request)
+
+    def exception(self, user, url, file_name, message, request=None):
+        """
+        Registra un error con el traceback de la excepción actual.
+        Debe llamarse dentro de un bloque except.
+        """
+        self._log(logging.ERROR, user, url, file_name, message, request,
+                  exc_info=True)
 
     def debug(self, user, url, file_name, message, request=None):
         """
         Registra un mensaje de debug.
         """
-        formatted_message = self._format_log_message(
-            user, url, file_name, message, request
-        )
-        self.logger.debug(formatted_message)
+        self._log(logging.DEBUG, user, url, file_name, message, request)
 
     def critical(self, user, url, file_name, message, request=None):
         """
         Registra un mensaje crítico.
         """
-        formatted_message = self._format_log_message(
-            user, url, file_name, message, request
-        )
-        self.logger.critical(formatted_message)
+        self._log(logging.CRITICAL, user, url, file_name, message, request)
 
 
 # Instancia global del logger
@@ -152,27 +136,42 @@ app_logger = AppLogger()
 # Funciones de conveniencia para usar en toda la aplicación
 def log_info(user, url, file_name, message, request=None):
     """Función de conveniencia para logging de información."""
-    app_logger.info(user, url, file_name, message, request)
+    app_logger._log(logging.INFO, user, url, file_name, message, request)
 
 
 def log_warning(user, url, file_name, message, request=None):
     """Función de conveniencia para logging de advertencias."""
-    app_logger.warning(user, url, file_name, message, request)
+    app_logger._log(logging.WARNING, user, url, file_name, message, request)
 
 
 def log_error(user, url, file_name, message, request=None):
     """Función de conveniencia para logging de errores."""
-    app_logger.error(user, url, file_name, message, request)
+    app_logger._log(logging.ERROR, user, url, file_name, message, request)
+
+
+def log_exception(user, url, file_name, message, request=None):
+    """
+    Registra un error incluyendo el traceback de la excepción actual.
+
+    Uso:
+        try:
+            ...
+        except Exception:
+            log_exception(request.user, request.path, 'MiVista',
+                          'No se pudo procesar', request)
+    """
+    app_logger._log(logging.ERROR, user, url, file_name, message, request,
+                    exc_info=True)
 
 
 def log_debug(user, url, file_name, message, request=None):
     """Función de conveniencia para logging de debug."""
-    app_logger.debug(user, url, file_name, message, request)
+    app_logger._log(logging.DEBUG, user, url, file_name, message, request)
 
 
 def log_critical(user, url, file_name, message, request=None):
     """Función de conveniencia para logging crítico."""
-    app_logger.critical(user, url, file_name, message, request)
+    app_logger._log(logging.CRITICAL, user, url, file_name, message, request)
 
 
 # Decorator para logging automático de vistas
@@ -185,6 +184,7 @@ def log_view_access(view_func):
     def mi_vista(request):
         # código de la vista
     """
+    @functools.wraps(view_func)
     def wrapper(request, *args, **kwargs):
         user = request.user if hasattr(request, 'user') else None
         url = (request.get_full_path()
@@ -202,7 +202,7 @@ def log_view_access(view_func):
             response = view_func(request, *args, **kwargs)
             return response
         except Exception as e:
-            log_error(
+            log_exception(
                 user=user,
                 url=url,
                 file_name=view_func.__module__,

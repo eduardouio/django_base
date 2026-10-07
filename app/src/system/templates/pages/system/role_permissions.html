@@ -1,0 +1,39 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{% include 'pages/system/_nav.html' %}
+
+<form method="post">
+	{% csrf_token %}
+	<div class="flex flex-col lg:flex-row gap-6">
+		<aside class="lg:w-72 space-y-4">
+			<div class="card bg-base-200">
+				<div class="card-body p-5">
+					<label class="form-control">
+						<span class="label-text text-xs mb-1">Nombre del rol</span>
+						<input type="text" name="name" value="{{ group.name }}" class="input input-bordered input-sm w-full" maxlength="150" {% if is_profile_group %}disabled{% endif %} />
+					</label>
+					{% if is_profile_group %}<p class="text-xs opacity-70">Rol de perfil: se asigna automáticamente y no se puede renombrar.</p>{% endif %}
+					<div class="divider my-1"></div>
+					<h3 class="font-semibold text-sm">Usuarios con este rol</h3>
+					<ul class="text-xs space-y-1 max-h-64 overflow-y-auto">
+						{% for member in users %}
+							<li><a class="link link-hover" href="{% url 'system:user_permissions' member.pk %}">{{ member.email }}</a></li>
+						{% empty %}
+							<li class="opacity-60">Ningún usuario.</li>
+						{% endfor %}
+					</ul>
+				</div>
+			</div>
+			<button type="submit" class="btn btn-primary w-full gap-2"><i class="las la-save"></i> Guardar permisos</button>
+			<a href="{% url 'system:role_list' %}" class="btn btn-ghost w-full gap-2"><i class="las la-arrow-left"></i> Volver a roles</a>
+		</aside>
+		<div class="flex-1 min-w-0">
+			<p class="text-sm opacity-70 mb-3">Marca las acciones permitidas por modelo. Haz clic en el nombre de una fila o columna para marcarla completa.</p>
+			{% include 'pages/system/_permission_matrix.html' %}
+		</div>
+	</div>
+</form>
+{% endblock %}

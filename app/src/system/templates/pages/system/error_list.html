@@ -1,0 +1,71 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{% include 'pages/system/_nav.html' %}
+
+<form method="get" class="card bg-base-200 mb-6">
+	<div class="card-body p-4 grid grid-cols-1 md:grid-cols-6 gap-3 items-end">
+		<label class="form-control md:col-span-2">
+			<span class="label-text text-xs mb-1">Buscar (mensaje, tipo, URL, usuario o request id)</span>
+			<input type="search" name="q" value="{{ filters.q|default:'' }}" class="input input-bordered input-sm w-full" placeholder="Buscar..." />
+		</label>
+		<label class="form-control">
+			<span class="label-text text-xs mb-1">Estado</span>
+			<select name="status" class="select select-bordered select-sm">
+				<option value="open" {% if status == 'open' %}selected{% endif %}>Sin resolver</option>
+				<option value="resolved" {% if status == 'resolved' %}selected{% endif %}>Resueltos</option>
+				<option value="all" {% if status == 'all' %}selected{% endif %}>Todos</option>
+			</select>
+		</label>
+		<label class="form-control">
+			<span class="label-text text-xs mb-1">Nivel</span>
+			<select name="level" class="select select-bordered select-sm">
+				<option value="">Todos</option>
+				{% for code, label in levels %}<option value="{{ code }}" {% if filters.level == code %}selected{% endif %}>{{ label }}</option>{% endfor %}
+			</select>
+		</label>
+		<label class="form-control">
+			<span class="label-text text-xs mb-1">Desde</span>
+			<input type="date" name="date_from" value="{{ filters.date_from|default:'' }}" class="input input-bordered input-sm w-full" />
+		</label>
+		<label class="form-control">
+			<span class="label-text text-xs mb-1">Hasta</span>
+			<div class="flex gap-2">
+				<input type="date" name="date_to" value="{{ filters.date_to|default:'' }}" class="input input-bordered input-sm w-full" />
+				<button class="btn btn-sm btn-primary" title="Filtrar"><i class="las la-filter"></i></button>
+			</div>
+		</label>
+	</div>
+</form>
+
+<div class="overflow-x-auto bg-base-100 border border-base-300 rounded-box">
+	<table class="table table-sm">
+		<thead>
+			<tr><th>Error</th><th>URL</th><th>Usuario</th><th class="text-right">Veces</th><th>Última vez</th><th>Estado</th></tr>
+		</thead>
+		<tbody>
+		{% for error in object_list %}
+			<tr class="hover">
+				<td class="max-w-md">
+					<a class="link link-hover font-semibold" href="{% url 'system:error_detail' error.pk %}">
+						<span class="badge badge-sm {% if error.level == 'CRITICAL' %}badge-error{% else %}badge-warning{% endif %}">{{ error.level }}</span>
+						{{ error.exception_type|default:error.logger_name }}
+					</a>
+					<div class="text-xs opacity-70 truncate">{{ error.title }}</div>
+				</td>
+				<td class="text-xs font-mono truncate max-w-[14rem]">{% if error.method %}{{ error.method }} {% endif %}{{ error.url|default:'—' }}</td>
+				<td class="text-xs">{{ error.user.email|default:'—' }}</td>
+				<td class="text-right"><span class="badge badge-ghost">{{ error.occurrences }}</span></td>
+				<td class="text-xs whitespace-nowrap" title="{{ error.last_seen|date:'d/m/Y H:i:s' }}">hace {{ error.last_seen|timesince }}</td>
+				<td>{% if error.is_resolved %}<span class="badge badge-success badge-sm">Resuelto</span>{% else %}<span class="badge badge-error badge-outline badge-sm">Pendiente</span>{% endif %}</td>
+			</tr>
+		{% empty %}
+			<tr><td colspan="6" class="text-center py-10 opacity-70"><i class="las la-check-circle text-4xl text-success"></i><p>No se encontraron errores.</p></td></tr>
+		{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% include 'pages/system/_pagination.html' %}
+{% endblock %}

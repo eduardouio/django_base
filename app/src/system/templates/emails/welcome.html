@@ -1,0 +1,9 @@
+{% extends 'emails/base_email.html' %}
+{% block content %}
+<h2 style="margin-top:0;">¡Bienvenido a {{ site_name }}!</h2>
+<p>Hola {{ user.first_name|default:user.email }},</p>
+<p>Se creó una cuenta para ti con el correo <strong>{{ user.email }}</strong>.</p>
+{% include 'emails/_button.html' with url=login_url label='Ingresar al sistema' %}
+<p>Si no recuerdas tu contraseña puedes crear una nueva desde
+	<a href="{{ reset_request_url }}" style="color:#2563eb;">¿Olvidaste tu contraseña?</a>.</p>
+{% endblock %}

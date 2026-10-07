@@ -1,0 +1,77 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{% include 'pages/system/_nav.html' %}
+
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+	<a href="{% url 'system:connected_users' %}" class="stat bg-base-200 rounded-box shadow-sm hover:shadow-md transition-shadow">
+		<div class="stat-figure text-success"><i class="las la-user-check text-4xl"></i></div>
+		<div class="stat-title">Usuarios en línea</div>
+		<div class="stat-value text-success">{{ online_count }}</div>
+		<div class="stat-desc">{{ logins_today }} inicios de sesión hoy</div>
+	</a>
+	<a href="{% url 'system:error_list' %}" class="stat bg-base-200 rounded-box shadow-sm hover:shadow-md transition-shadow">
+		<div class="stat-figure {% if open_errors %}text-error{% else %}text-base-content/40{% endif %}"><i class="las la-bug text-4xl"></i></div>
+		<div class="stat-title">Errores sin resolver</div>
+		<div class="stat-value {% if open_errors %}text-error{% endif %}">{{ open_errors }}</div>
+		<div class="stat-desc">{{ errors_24h }} con actividad en las últimas 24 h</div>
+	</a>
+	<a href="{% url 'system:email_list' %}?status=SENT" class="stat bg-base-200 rounded-box shadow-sm hover:shadow-md transition-shadow">
+		<div class="stat-figure text-info"><i class="las la-paper-plane text-4xl"></i></div>
+		<div class="stat-title">Correos enviados (24 h)</div>
+		<div class="stat-value text-info">{{ emails_sent_24h }}</div>
+		<div class="stat-desc">Registro de envíos</div>
+	</a>
+	<a href="{% url 'system:email_list' %}?status=FAILED" class="stat bg-base-200 rounded-box shadow-sm hover:shadow-md transition-shadow">
+		<div class="stat-figure {% if emails_failed_24h %}text-warning{% else %}text-base-content/40{% endif %}"><i class="las la-exclamation-triangle text-4xl"></i></div>
+		<div class="stat-title">Correos fallidos (24 h)</div>
+		<div class="stat-value {% if emails_failed_24h %}text-warning{% endif %}">{{ emails_failed_24h }}</div>
+		<div class="stat-desc">Revisa la configuración SMTP</div>
+	</a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+	<div class="card bg-base-100 border border-base-300 lg:col-span-2">
+		<div class="card-body">
+			<h2 class="card-title"><i class="las la-bug"></i> Últimos errores sin resolver</h2>
+			{% if recent_errors %}
+			<div class="overflow-x-auto">
+				<table class="table table-sm">
+					<thead><tr><th>Error</th><th>URL</th><th class="text-right">Veces</th><th>Última vez</th></tr></thead>
+					<tbody>
+					{% for error in recent_errors %}
+						<tr class="hover">
+							<td><a class="link link-hover font-medium" href="{% url 'system:error_detail' error.pk %}">{{ error.exception_type|default:error.level }}</a>
+								<div class="text-xs opacity-70 truncate max-w-xs">{{ error.title }}</div></td>
+							<td class="text-xs font-mono truncate max-w-[12rem]">{{ error.url|default:'—' }}</td>
+							<td class="text-right"><span class="badge badge-error badge-sm">{{ error.occurrences }}</span></td>
+							<td class="text-xs whitespace-nowrap">{{ error.last_seen|timesince }}</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			</div>
+			{% else %}
+			<div class="py-8 text-center opacity-70"><i class="las la-check-circle text-4xl text-success"></i><p>No hay errores pendientes.</p></div>
+			{% endif %}
+		</div>
+	</div>
+
+	<div class="card bg-base-100 border border-base-300">
+		<div class="card-body">
+			<h2 class="card-title"><i class="las la-th-large"></i> Accesos rápidos</h2>
+			<ul class="menu p-0">
+				{% if perms.system.view_usersession %}<li><a href="{% url 'system:connected_users' %}"><i class="las la-user-clock"></i> Usuarios conectados</a></li>
+				<li><a href="{% url 'system:session_history' %}"><i class="las la-history"></i> Historial de accesos</a></li>{% endif %}
+				{% if perms.system.manage_permissions %}<li><a href="{% url 'system:role_list' %}"><i class="las la-user-shield"></i> Roles y permisos</a></li>
+				<li><a href="{% url 'system:user_permissions_list' %}"><i class="las la-user-cog"></i> Permisos por usuario</a></li>{% endif %}
+				{% if perms.system.view_errorlog %}<li><a href="{% url 'system:error_list' %}"><i class="las la-bug"></i> Registro de errores</a></li>{% endif %}
+				{% if perms.system.view_emaillog %}<li><a href="{% url 'system:email_list' %}"><i class="las la-envelope"></i> Correos enviados</a></li>{% endif %}
+				{% if user.is_staff %}<li><a href="{% url 'admin:index' %}"><i class="las la-tools"></i> Admin de Django</a></li>{% endif %}
+			</ul>
+		</div>
+	</div>
+</div>
+{% endblock %}

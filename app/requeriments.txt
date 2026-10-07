@@ -1,29 +1,39 @@
-django==5.1.0
-django-grappelli==4.0.1
-djangorestframework==3.15.2
-django-filter==24.3
-django-import-export==4.1.1
-djangorestframework-simplejwt==5.3.0
-django-simple-history==3.7.0
+# ── Núcleo ────────────────────────────────────────────────────────────────
+django==5.2.18
+django-grappelli==4.0.4
 django-crum==0.7.9
-Faker==28.1.0
-pytest==8.3.2
-pytest-django==4.8.0
-pytest-mock==3.14.0
-ipdb==0.13.13
-django-utils-six==2.0
-django-cors-headers==4.4.0
-requests==2.32.3
-django-extensions==3.2.3
-openai==1.40.6
-google-generativeai==0.7.2
-pillow==10.4.0
-psycopg2-binary==2.9.10
-setuptools==72.1.0
-django-user-sessions==2.0.0
-gunicorn==23.0.0
-WeasyPrint==62.3
-reportlab==4.2.2
-playwright==1.46.0
-Werkzeug==3.0.3
+django-simple-history==3.13.0
+django-extensions==4.1
+django-cors-headers==4.9.0
+Werkzeug==3.1.9
+
+# ── API ──────────────────────────────────────────────────────────────────
+djangorestframework==3.18.3
+djangorestframework-simplejwt==5.5.1
+django-filter==26.2
+
+# ── Base de datos ────────────────────────────────────────────────────────
+psycopg[binary]==3.3.6
+
+# ── Importación / exportación / reportes ────────────────────────────────
+django-import-export==4.4.1
 openpyxl==3.1.5
+WeasyPrint==70.0
+reportlab==5.0.1
+pillow==12.3.0
+
+# ── Integraciones ────────────────────────────────────────────────────────
+requests==2.34.2
+openai==3.26.0
+google-genai==2.28.0
+
+# ── Servidor ─────────────────────────────────────────────────────────────
+gunicorn==26.2.0
+
+# ── Desarrollo y pruebas ─────────────────────────────────────────────────
+Faker==40.41.0
+pytest==9.1.1
+pytest-django==4.14.0
+pytest-mock==3.16.0
+playwright==1.63.0
+ipdb==0.13.13

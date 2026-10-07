@@ -13,7 +13,7 @@ from common.LoggerApp import (
 )
 
 
-LOG_FILE = Path(settings.BASE_DIR) / 'logs' / 'app_log.log'
+LOG_FILE = Path(settings.LOG_DIR) / 'app.log'
 
 
 @pytest.mark.django_db

@@ -1,3 +1,4 @@
+from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from accounts.models import CustomUserModel
 from config import secrets
@@ -6,6 +7,9 @@ class Command(BaseCommand):
     help = 'Seeds the database with initial users'
 
     def handle(self, *args, **kwargs):
+        # Roles (grupos) de perfil antes de crear usuarios
+        call_command('sync_roles')
+
         domain = secrets.DOMMAIN
         password = secrets.GENERIC_PASSWORD
 

@@ -1,0 +1,49 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{% include 'pages/system/_nav.html' %}
+
+<form method="post">
+	{% csrf_token %}
+	<div class="flex flex-col lg:flex-row gap-6">
+		<aside class="lg:w-72 space-y-4">
+			<div class="card bg-base-200">
+				<div class="card-body p-5 text-sm">
+					<h3 class="font-semibold">{{ target.get_full_name|default:target.email }}</h3>
+					<p class="opacity-70 break-all">{{ target.email }}</p>
+					{% if target.is_superuser %}
+					<div class="alert alert-warning text-xs p-2 mt-2"><i class="las la-crown"></i> Superusuario: tiene todos los permisos sin importar lo que se marque aquí.</div>
+					{% endif %}
+					<div class="divider my-1"></div>
+					<h3 class="font-semibold">Rol de perfil</h3>
+					<p>{% if profile_group %}<span class="badge badge-secondary">{{ profile_group.name }}</span>{% else %}<span class="opacity-60">Sin perfil</span>{% endif %}</p>
+					<p class="text-xs opacity-60">Se cambia desde el tipo de perfil del usuario.</p>
+					<div class="divider my-1"></div>
+					<h3 class="font-semibold">Roles adicionales</h3>
+					<div class="space-y-1">
+					{% for g in extra_groups %}
+						<label class="label cursor-pointer justify-start gap-2 py-1">
+							<input type="checkbox" name="groups" value="{{ g.pk }}" class="checkbox checkbox-sm checkbox-primary" {% if g.pk in user_group_ids %}checked{% endif %} />
+							<span class="label-text">{{ g.name }}</span>
+						</label>
+					{% empty %}
+						<p class="text-xs opacity-60">No hay roles adicionales. <a class="link" href="{% url 'system:role_list' %}">Crear uno</a>.</p>
+					{% endfor %}
+					</div>
+				</div>
+			</div>
+			<button type="submit" class="btn btn-primary w-full gap-2"><i class="las la-save"></i> Guardar</button>
+			<a href="{% url 'system:user_permissions_list' %}" class="btn btn-ghost w-full gap-2"><i class="las la-arrow-left"></i> Volver</a>
+		</aside>
+		<div class="flex-1 min-w-0">
+			<div class="flex flex-wrap items-center gap-4 text-sm mb-3">
+				<span class="flex items-center gap-1"><input type="checkbox" class="checkbox checkbox-xs checkbox-secondary" checked disabled /> Heredado de un rol (se edita en el rol)</span>
+				<span class="flex items-center gap-1"><input type="checkbox" class="checkbox checkbox-xs checkbox-primary" checked disabled /> Permiso directo del usuario</span>
+			</div>
+			{% include 'pages/system/_permission_matrix.html' %}
+		</div>
+	</div>
+</form>
+{% endblock %}

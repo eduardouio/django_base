@@ -1,0 +1,21 @@
+{# Sub-navegación del panel de administración #}
+{% with url_name=request.resolver_match.url_name %}
+<div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+	<div>
+		<div class="text-sm breadcrumbs py-0 opacity-70">
+			<ul>
+				<li><a href="{% url 'system:dashboard' %}">Administración</a></li>
+				<li>{{ title }}</li>
+			</ul>
+		</div>
+		<h1 class="text-2xl font-bold">{{ title }}</h1>
+	</div>
+	<div role="tablist" class="tabs tabs-boxed bg-base-200 flex-wrap">
+		{% if perms.system.view_dashboard %}<a role="tab" href="{% url 'system:dashboard' %}" class="tab gap-1 {% if url_name == 'dashboard' %}tab-active{% endif %}"><i class="las la-tachometer-alt"></i> Resumen</a>{% endif %}
+		{% if perms.system.view_usersession %}<a role="tab" href="{% url 'system:connected_users' %}" class="tab gap-1 {% if url_name == 'connected_users' or url_name == 'session_history' %}tab-active{% endif %}"><i class="las la-user-clock"></i> Conectados</a>{% endif %}
+		{% if perms.system.manage_permissions %}<a role="tab" href="{% url 'system:role_list' %}" class="tab gap-1 {% if url_name == 'role_list' or url_name == 'role_permissions' or url_name == 'user_permissions_list' or url_name == 'user_permissions' %}tab-active{% endif %}"><i class="las la-user-shield"></i> Permisos</a>{% endif %}
+		{% if perms.system.view_errorlog %}<a role="tab" href="{% url 'system:error_list' %}" class="tab gap-1 {% if url_name == 'error_list' or url_name == 'error_detail' %}tab-active{% endif %}"><i class="las la-bug"></i> Errores</a>{% endif %}
+		{% if perms.system.view_emaillog %}<a role="tab" href="{% url 'system:email_list' %}" class="tab gap-1 {% if url_name == 'email_list' %}tab-active{% endif %}"><i class="las la-envelope"></i> Correos</a>{% endif %}
+	</div>
+</div>
+{% endwith %}

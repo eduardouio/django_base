@@ -1,0 +1,80 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{% include 'pages/system/_nav.html' %}
+
+<div class="flex flex-col md:flex-row gap-4 justify-between mb-6">
+	<div role="tablist" class="tabs tabs-bordered">
+		<a role="tab" class="tab tab-active">Roles</a>
+		<a role="tab" class="tab" href="{% url 'system:user_permissions_list' %}">Por usuario</a>
+	</div>
+	<form method="post" class="join">
+		{% csrf_token %}
+		<input type="text" name="name" class="input input-bordered input-sm join-item" placeholder="Nombre del nuevo rol" required maxlength="150" />
+		<button class="btn btn-sm btn-primary join-item gap-1"><i class="las la-plus"></i> Crear rol</button>
+	</form>
+</div>
+
+<div class="alert mb-6 text-sm">
+	<i class="las la-info-circle text-xl"></i>
+	<span>Los roles de <strong>perfil</strong> se asignan automáticamente según el tipo de perfil de cada usuario. Puedes crear roles adicionales y asignarlos a usuarios desde <a class="link" href="{% url 'system:user_permissions_list' %}">Permisos por usuario</a>.</span>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+	{% for role in roles %}
+	<div class="card bg-base-100 border border-base-300">
+		<div class="card-body p-5">
+			<div class="flex items-start justify-between gap-2">
+				<h2 class="card-title text-lg"><i class="las la-user-shield text-primary"></i> {{ role.name }}</h2>
+				{% if role.name in profile_groups %}<span class="badge badge-secondary badge-sm">Perfil</span>{% endif %}
+			</div>
+			<div class="flex gap-4 text-sm opacity-80">
+				<span><i class="las la-users"></i> {{ role.users_count }} usuario{{ role.users_count|pluralize }}</span>
+				<span><i class="las la-key"></i> {{ role.permissions_count }} permiso{{ role.permissions_count|pluralize }}</span>
+			</div>
+			<div class="card-actions justify-end mt-2">
+				{% if role.name not in profile_groups %}
+				<form method="post" action="{% url 'system:role_delete' role.pk %}" onsubmit="return confirmDelete(event, '{{ role.name|escapejs }}')">
+					{% csrf_token %}
+					<button class="btn btn-sm btn-ghost text-error"><i class="las la-trash"></i></button>
+				</form>
+				{% endif %}
+				<a href="{% url 'system:role_permissions' role.pk %}" class="btn btn-sm btn-primary btn-outline gap-1"><i class="las la-edit"></i> Permisos</a>
+			</div>
+		</div>
+	</div>
+	{% empty %}
+	<p class="opacity-70">No hay roles. Ejecuta <code>python manage.py sync_roles</code> para crear los roles de perfil.</p>
+	{% endfor %}
+</div>
+
+<dialog id="deleteRoleModal" class="modal">
+	<div class="modal-box">
+		<h3 class="font-bold text-lg"><i class="las la-trash text-error"></i> Eliminar rol</h3>
+		<p class="py-4">¿Eliminar el rol <strong id="deleteRoleName"></strong>? Los usuarios perderán los permisos que reciben de él.</p>
+		<div class="modal-action">
+			<button type="button" class="btn btn-ghost" onclick="deleteRoleModal.close()">Cancelar</button>
+			<button type="button" class="btn btn-error" id="deleteRoleConfirm">Eliminar</button>
+		</div>
+	</div>
+</dialog>
+{% endblock %}
+
+{% block scripts %}
+<script>
+	let pendingDeleteForm = null;
+	function confirmDelete(event, name) {
+		if (pendingDeleteForm === event.target) return true;
+		event.preventDefault();
+		pendingDeleteForm = event.target;
+		document.getElementById('deleteRoleName').textContent = name;
+		document.getElementById('deleteRoleModal').showModal();
+		return false;
+	}
+	document.getElementById('deleteRoleConfirm').addEventListener('click', () => {
+		if (pendingDeleteForm) pendingDeleteForm.submit();
+	});
+</script>
+{% endblock %}

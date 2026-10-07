@@ -1,0 +1,41 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{% include 'pages/system/_nav.html' %}
+
+<div class="flex flex-col md:flex-row gap-4 justify-between mb-6">
+	<div role="tablist" class="tabs tabs-bordered">
+		<a role="tab" class="tab" href="{% url 'system:role_list' %}">Roles</a>
+		<a role="tab" class="tab tab-active">Por usuario</a>
+	</div>
+	<form method="get" class="join">
+		<input type="search" name="q" value="{{ filters.q|default:'' }}" class="input input-bordered input-sm join-item" placeholder="Buscar usuario..." />
+		<button class="btn btn-sm btn-primary join-item"><i class="las la-search"></i></button>
+	</form>
+</div>
+
+<div class="overflow-x-auto bg-base-100 border border-base-300 rounded-box">
+	<table class="table table-sm">
+		<thead><tr><th>Usuario</th><th>Perfil</th><th>Roles</th><th>Estado</th><th></th></tr></thead>
+		<tbody>
+		{% for u in users %}
+			<tr class="hover">
+				<td><div class="font-medium">{{ u.email }}</div><div class="text-xs opacity-60">{{ u.get_full_name }}</div></td>
+				<td class="text-xs">{{ u.get_profile_type_display }}</td>
+				<td><div class="flex flex-wrap gap-1">{% for g in u.groups.all %}<span class="badge badge-outline badge-sm">{{ g.name }}</span>{% endfor %}</div></td>
+				<td>
+					{% if u.is_superuser %}<span class="badge badge-secondary badge-sm">Superusuario</span>{% endif %}
+					{% if not u.is_active %}<span class="badge badge-ghost badge-sm">Inactivo</span>{% endif %}
+				</td>
+				<td class="text-right"><a href="{% url 'system:user_permissions' u.pk %}" class="btn btn-xs btn-primary btn-outline gap-1"><i class="las la-user-cog"></i> Permisos</a></td>
+			</tr>
+		{% empty %}
+			<tr><td colspan="5" class="text-center py-10 opacity-70">No se encontraron usuarios.</td></tr>
+		{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% include 'pages/system/_pagination.html' %}
+{% endblock %}

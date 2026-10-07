@@ -54,6 +54,20 @@
 		<nav class="flex-none">
 			<ul class="menu menu-horizontal hidden md:flex gap-2">
 				<li><a href="{% url 'home' %}" class="gap-1"><i class="las la-home"></i><span>Inicio</span></a></li>
+				{% if perms.system.view_dashboard %}
+				<li>
+					<details>
+						<summary class="gap-1"><i class="las la-cogs"></i><span>Administración</span></summary>
+						<ul class="p-2 bg-base-100 rounded-box shadow w-56 z-50">
+							<li><a href="{% url 'system:dashboard' %}"><i class="las la-tachometer-alt"></i> Resumen</a></li>
+							{% if perms.system.view_usersession %}<li><a href="{% url 'system:connected_users' %}"><i class="las la-user-clock"></i> Usuarios conectados</a></li>{% endif %}
+							{% if perms.system.manage_permissions %}<li><a href="{% url 'system:role_list' %}"><i class="las la-user-shield"></i> Roles y permisos</a></li>{% endif %}
+							{% if perms.system.view_errorlog %}<li><a href="{% url 'system:error_list' %}"><i class="las la-bug"></i> Registro de errores</a></li>{% endif %}
+							{% if perms.system.view_emaillog %}<li><a href="{% url 'system:email_list' %}"><i class="las la-envelope"></i> Correos enviados</a></li>{% endif %}
+						</ul>
+					</details>
+				</li>
+				{% endif %}
 			</ul>
 			<div class="dropdown dropdown-end md:hidden">
 				<label tabindex="0" class="btn btn-ghost btn-square">
@@ -61,6 +75,9 @@
 				</label>
 				<ul tabindex="0" class="menu dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52 z-50">
 					<li><a href="{% url 'home' %}" class="gap-1"><i class="las la-home"></i> Inicio</a></li>
+					{% if perms.system.view_dashboard %}
+					<li><a href="{% url 'system:dashboard' %}" class="gap-1"><i class="las la-cogs"></i> Administración</a></li>
+					{% endif %}
 					<hr class="my-1" />
 					{% if user.is_authenticated %}
 					<li><a href="{% url 'accounts:profile' %}" class="gap-1"><i class="las la-id-badge"></i> Perfil</a></li>
@@ -197,8 +214,11 @@
 		}
 	</script>
 	<script>
-  document.querySelectorAll('form input').forEach(el => {
-    el.classList.add('input','input-bordered','input-md','w-full');
+  // Estilo por defecto para inputs de texto sin clases propias (no checkbox/radio)
+  document.querySelectorAll('form input:not([type=checkbox]):not([type=radio]):not([type=hidden]):not([type=submit]):not([type=button]):not([type=file])').forEach(el => {
+    if (!el.classList.contains('input')) {
+      el.classList.add('input','input-bordered','input-md','w-full');
+    }
   });
 </script>
 </body>

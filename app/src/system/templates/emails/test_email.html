@@ -1,0 +1,6 @@
+{% extends 'emails/base_email.html' %}
+{% block content %}
+<h2 style="margin-top:0;">Correo de prueba</h2>
+<p>Si estás leyendo esto, la configuración de correo de <strong>{{ site_name }}</strong> funciona correctamente.</p>
+<p style="font-size:13px;color:#64748b;">Enviado el {{ sent_at|date:"d/m/Y H:i" }} por {{ user.email }}.</p>
+{% endblock %}

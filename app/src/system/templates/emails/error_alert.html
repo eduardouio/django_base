@@ -1,0 +1,18 @@
+{% extends 'emails/base_email.html' %}
+{% block content %}
+<h2 style="margin-top:0;color:#b91c1c;">{{ status }} error en {{ site_name }}</h2>
+<table role="presentation" cellpadding="6" cellspacing="0" style="width:100%;font-size:14px;border-collapse:collapse;">
+	<tr><td style="color:#64748b;width:140px;">Tipo</td><td><strong>{{ error.exception_type|default:error.level }}</strong></td></tr>
+	<tr><td style="color:#64748b;">Mensaje</td><td>{{ error.title }}</td></tr>
+	<tr><td style="color:#64748b;">URL</td><td>{{ error.method }} {{ error.url|default:'—' }}</td></tr>
+	<tr><td style="color:#64748b;">Usuario</td><td>{{ error.user|default:'Anónimo' }}</td></tr>
+	<tr><td style="color:#64748b;">Ubicación</td><td style="font-family:monospace;font-size:12px;">{{ error.location }}</td></tr>
+	<tr><td style="color:#64748b;">Ocurrencias</td><td>{{ error.occurrences }}</td></tr>
+	<tr><td style="color:#64748b;">Request ID</td><td style="font-family:monospace;">{{ error.request_id }}</td></tr>
+</table>
+{% if error.traceback %}
+<pre style="background-color:#0f172a;color:#e2e8f0;padding:12px;border-radius:6px;font-size:11px;overflow:auto;white-space:pre-wrap;">{{ error.traceback|truncatechars:4000 }}</pre>
+{% endif %}
+{% include 'emails/_button.html' with url=detail_url label='Ver detalle del error' %}
+<p style="font-size:12px;color:#64748b;">Solo se avisa la primera vez que ocurre un error o cuando reaparece después de marcarse como resuelto.</p>
+{% endblock %}

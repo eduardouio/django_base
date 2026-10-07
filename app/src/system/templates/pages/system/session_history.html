@@ -1,0 +1,53 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+{% include 'pages/system/_nav.html' %}
+
+<form method="get" class="card bg-base-200 mb-6">
+	<div class="card-body p-4 grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+		<label class="form-control md:col-span-2">
+			<span class="label-text text-xs mb-1">Usuario</span>
+			<input type="search" name="q" value="{{ filters.q|default:'' }}" class="input input-bordered input-sm w-full" placeholder="correo@..." />
+		</label>
+		<label class="form-control">
+			<span class="label-text text-xs mb-1">Desde</span>
+			<input type="date" name="date_from" value="{{ filters.date_from|default:'' }}" class="input input-bordered input-sm w-full" />
+		</label>
+		<label class="form-control">
+			<span class="label-text text-xs mb-1">Hasta</span>
+			<div class="flex gap-2">
+				<input type="date" name="date_to" value="{{ filters.date_to|default:'' }}" class="input input-bordered input-sm w-full" />
+				<button class="btn btn-sm btn-primary"><i class="las la-filter"></i></button>
+			</div>
+		</label>
+	</div>
+</form>
+
+<div class="overflow-x-auto bg-base-100 border border-base-300 rounded-box">
+	<table class="table table-sm">
+		<thead><tr><th>Usuario</th><th>IP</th><th>Dispositivo</th><th>Inicio</th><th>Última actividad</th><th>Fin</th><th>Motivo</th></tr></thead>
+		<tbody>
+		{% for s in object_list %}
+			<tr class="hover">
+				<td class="font-medium">{{ s.user.email }}</td>
+				<td class="text-xs font-mono">{{ s.ip|default:'—' }}</td>
+				<td class="text-xs">{{ s.device }}</td>
+				<td class="text-xs whitespace-nowrap">{{ s.login_at|date:'d/m/Y H:i' }}</td>
+				<td class="text-xs whitespace-nowrap">{{ s.last_activity|date:'d/m/Y H:i' }}</td>
+				<td class="text-xs whitespace-nowrap">{{ s.logout_at|date:'d/m/Y H:i'|default:'—' }}</td>
+				<td>
+					{% if not s.logout_at %}<span class="badge badge-success badge-sm">Abierta</span>
+					{% elif s.ended_reason == 'FORCED' %}<span class="badge badge-error badge-sm">{{ s.get_ended_reason_display }}</span>
+					{% else %}<span class="badge badge-ghost badge-sm">{{ s.get_ended_reason_display }}</span>{% endif %}
+				</td>
+			</tr>
+		{% empty %}
+			<tr><td colspan="7" class="text-center py-10 opacity-70">Sin registros.</td></tr>
+		{% endfor %}
+		</tbody>
+	</table>
+</div>
+{% include 'pages/system/_pagination.html' %}
+{% endblock %}
